@@ -13,14 +13,21 @@ namespace Block_Game
 {
     public partial class Form1 : Form
     {
+        public int refreshRate = 15;
+
         public bool gameActive = false;
         public List<List<bool>> filledSpace = new List<List<bool>> { };
 
         public Point spaceDimensions = new Point(1000, 600);
         public int spaceSize = 20;
 
-        public Point ballPosition = new Point(300, 300);
-        public Point ballVelocity = new Point(-3, 1);
+        public Point ballPosition = new Point(800, 179);
+        public Point ballVelocity = new Point(3, -3);
+
+        public int prevAX = 0;
+        public int prevBX = 0;
+        public int prevAY = 0;
+        public int prevBY = 0;
 
         public Form1()
         {
@@ -47,25 +54,25 @@ namespace Block_Game
 
             if (gameActive)
             {
+                int prevAX = ballPosition.X / spaceSize;
+                int prevBX = prevAX + 1;
+
+                int prevAY = ballPosition.Y / spaceSize;
+                int prevBY = prevAY + 1;
 
                 ballPosition.X += ballVelocity.X;
                 ballPosition.Y += ballVelocity.Y;
 
-                ballVelocity.X *= BounceX(e);
+                Point bounceFactor = Bounce(e, prevAX, prevBX, prevAY, prevBY);
+                ballVelocity.X *= bounceFactor.X;
+                ballVelocity.Y *= bounceFactor.Y;
+
+                //ballVelocity.X *= BounceX(e,prevAX,prevBX,prevAY,prevBY);
                 //ballVelocity.Y *= BounceY(e);
 
-                /*
-                if(ballPosition.X > 960 || ballPosition.X < 20)
-                {
-                    ballVelocity.X *= -1;
-                }
-                if (ballPosition.Y > 560 || ballPosition.Y < 20)
-                {
-                    ballVelocity.Y *= -1;
-                }
-                */
 
-                Thread.Sleep(15);
+
+                Thread.Sleep(refreshRate);
                 this.Invalidate();
             }
             else
@@ -74,7 +81,7 @@ namespace Block_Game
                 //write(e, filledSpace[1][1].ToString(), 100, 150, "Bold", 20);
             }
 
-            
+
         }
 
         static List<List<bool>> GenerateInitialSpace(Point spaceDimensions, int spaceSize)
@@ -104,7 +111,58 @@ namespace Block_Game
             return space;
         }
 
-        int BounceX(System.Windows.Forms.PaintEventArgs e)
+        Point Bounce(System.Windows.Forms.PaintEventArgs e, int prevAX, int prevBX, int prevAY, int prevBY)
+        {
+            int AX = ballPosition.X / spaceSize;
+            int BX = AX + 1;
+
+            int AY = ballPosition.Y / spaceSize;
+            int BY = AY + 1;
+
+            if (ContactCount(AX, BX, AY, BY) > 0)
+            {
+                if (ContactCount(AX, BX, AY, BY) == 3)
+                {
+                    Console.WriteLine("CORNER HIT");
+                    return new Point(-1, -1);
+                }
+                else if ((filledSpace[AX][AY] && filledSpace[AX][BY]) || (filledSpace[BX][AY] && filledSpace[BX][BY]))
+                {
+                    Console.WriteLine("L/R HIT");
+                    return new Point(-1, 1);
+                }
+                else if ((filledSpace[AX][AY] && filledSpace[BX][AY]) || (filledSpace[AX][BY] && filledSpace[BX][BY]))
+                {
+                    Console.WriteLine("U/D HIT");
+                    return new Point(1, -1);
+                }
+
+                Console.Write("\nX: " + ballPosition.X + "(between " + AX + " & " + BX + ")" + "\tprevAX = " + prevAX);
+                Console.Write("\tY: " + ballPosition.Y + "(between " + AY + " & " + BY + ")" + "\tprevAY = " + prevAY);
+            }
+
+
+
+
+
+            return new Point(1, 1);
+        }
+
+        public int ContactCount(int AX, int BX, int AY, int BY)
+        {
+            return Convert.ToInt32(filledSpace[AX][AY]) + Convert.ToInt32(filledSpace[AX][BY]) + Convert.ToInt32(filledSpace[BX][AY]) + Convert.ToInt32(filledSpace[BX][BY]);
+        }
+
+        public bool PrevPositionWasClear(int prevAX, int prevBX, int prevAY, int prevBY)
+        {
+            if (!filledSpace[prevAX][prevAY] && !filledSpace[prevAX][prevBY] && !filledSpace[prevBX][prevAY] && !filledSpace[prevBX][prevBY])
+            {
+                return true;
+            }
+            return false;
+        }
+
+        int BounceX(System.Windows.Forms.PaintEventArgs e, int prevAX, int prevBX, int prevAY, int prevBY)
         {
             //write(e, "press button to start", 100, 150, "Bold", 20);
             int testAX = ballPosition.X / spaceSize;
@@ -113,10 +171,20 @@ namespace Block_Game
             int testAY = ballPosition.Y / spaceSize;
             int testBY = testAY + 1;
 
-            
 
-            Console.Write("\nX: " + ballPosition.X + "(between " + testAX + " & " + testBX + ")");
-            Console.Write("\tY: " + ballPosition.Y + "(between " + testAY + " & " + testBY + ")");
+
+
+
+            Console.Write("\nX: " + ballPosition.X + "(between " + testAX + " & " + testBX + ")" + "\tprevAX = " + prevAX);
+            Console.Write("\tY: " + ballPosition.Y + "(between " + testAY + " & " + testBY + ")" + "\tprevAY = " + prevAY);
+
+            Console.Write("\t" + filledSpace[testAX][testAY]);
+
+
+            if (!filledSpace[prevAX][prevAY] && filledSpace[testAX][testAY])
+            {
+                return -1;
+            }
 
             return 1;
         }
@@ -129,7 +197,7 @@ namespace Block_Game
         void DrawBall(System.Windows.Forms.PaintEventArgs e, int x, int y, int size)
         {
             e.Graphics.FillEllipse(new SolidBrush(Color.Red), new Rectangle(x, y, size, size));
-            e.Graphics.DrawEllipse(new Pen(new SolidBrush(Color.Black),2), new Rectangle(x, y, size, size));
+            e.Graphics.DrawEllipse(new Pen(new SolidBrush(Color.Black), 2), new Rectangle(x, y, size, size));
         }
 
         void DrawBorder(System.Windows.Forms.PaintEventArgs e, int width, int height, int thickness)
