@@ -21,8 +21,8 @@ namespace Block_Game
         public Point spaceDimensions = new Point(1000, 600);
         public int spaceSize = 20;
 
-        public Point ballPosition = new Point(200, 100);
-        public Point ballVelocity = new Point(3, -3);
+        public Point ballPosition = new Point(150, 60);
+        public Point ballVelocity = new Point(3, 3);
 
         public int prevAX = 0;
         public int prevBX = 0;
@@ -113,7 +113,7 @@ namespace Block_Game
             }
 
 
-            for (int i = 6; i < 45; i++)
+            for (int i = 6; i < 44; i++)
             {
                 space[i][6] = true;
                 //space[i][11] = true;
@@ -145,6 +145,80 @@ namespace Block_Game
                 {
                     Console.WriteLine("U/D HIT");
                     return new Point(1, -1);
+                }
+
+                int diff = 0;
+                if (filledSpace[AX][AY])            //intersect top left corner
+                {
+                    if (ballVelocity.X > 0)
+                    {
+                        return new Point(1, -1);
+                    }
+                    else if (ballVelocity.Y > 0)
+                    {
+                        return new Point(-1, 1);
+                    }
+
+                    Point diffPoint = new Point(ballPosition.X - (spaceSize * AX), ballPosition.Y - (spaceSize * AY));
+                    diff = diffPoint.Y - diffPoint.X;
+                    Console.WriteLine("1 diff: " + diff);
+                }
+                else if (filledSpace[BX][AY])       // top right corner
+                {
+                    if (ballVelocity.X < 0)
+                    {
+                        return new Point(1, -1);
+                    }
+                    else if (ballVelocity.Y > 0)
+                    {
+                        return new Point(-1, 1);
+                    }
+
+                    Point diffPoint = new Point((spaceSize * BX) - ballPosition.X, ballPosition.Y - (spaceSize * AY));
+                    diff = diffPoint.Y - diffPoint.X;
+                    Console.WriteLine("2 diff: " + diff);
+                }
+                else if (filledSpace[AX][BY])       // bottom left corner
+                {
+                    if (ballVelocity.X > 0)
+                    {
+                        return new Point(1, -1);
+                    }
+                    else if (ballVelocity.Y < 0)
+                    {
+                        return new Point(-1, 1);
+                    }
+
+                    Point diffPoint = new Point(ballPosition.X - (spaceSize * AX), (spaceSize * BY) - ballPosition.Y);
+                    diff = diffPoint.Y - diffPoint.X;
+                    Console.WriteLine("3 diff: " + diff);
+                }
+                else if (filledSpace[BX][BY])       // bottom right corner
+                {
+                    if (ballVelocity.X < 0)
+                    {
+                        return new Point(1, -1);
+                    }
+                    else if (ballVelocity.Y < 0)
+                    {
+                        return new Point(-1, 1);
+                    }
+
+                    Point diffPoint = new Point((spaceSize * BX) - ballPosition.X, (spaceSize * BY) - ballPosition.Y);
+                    diff = diffPoint.Y - diffPoint.X;
+                    Console.WriteLine("4 diff: " + diff);
+                }
+                if (diff > 0)
+                {
+                    return new Point(1, -1);
+                }
+                else if (diff < 0)
+                {
+                    return new Point(-1, 1);
+                }
+                else
+                {
+                    return new Point(-1, -1);
                 }
 
                 //Console.Write("\nX: " + ballPosition.X + "(between " + AX + " & " + BX + ")" + "\tprevAX = " + prevAX);
