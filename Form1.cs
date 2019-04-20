@@ -21,7 +21,7 @@ namespace Block_Game
         public Point spaceDimensions = new Point(1000, 600);
         public int spaceSize = 20;
 
-        public Point ballPosition = new Point(800, 179);
+        public Point ballPosition = new Point(200, 100);
         public Point ballVelocity = new Point(3, -3);
 
         public int prevAX = 0;
@@ -49,6 +49,8 @@ namespace Block_Game
         {
             DrawBorder(e, spaceDimensions.X, spaceDimensions.Y, spaceSize);
             e.Graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(spaceDimensions.X - spaceSize, spaceDimensions.Y - spaceSize, spaceSize, spaceSize));
+
+            e.Graphics.FillRectangle(new SolidBrush(Color.Black), new Rectangle(spaceSize * 6, spaceSize * 6, spaceSize * 38, spaceSize));
 
             DrawBall(e, ballPosition.X, ballPosition.Y, spaceSize);
 
@@ -91,6 +93,8 @@ namespace Block_Game
             int columnCount = (spaceDimensions.X / spaceSize);
             int rowCount = (spaceDimensions.Y / spaceSize);
 
+            Console.WriteLine("Grid: " + columnCount + " x " + rowCount);
+
             for (int i = 0; i < columnCount; i++)
             {
                 List<bool> column = new List<bool> { };
@@ -108,6 +112,12 @@ namespace Block_Game
                 space.Add(column);
             }
 
+
+            for (int i = 6; i < 45; i++)
+            {
+                space[i][6] = true;
+                //space[i][11] = true;
+            }
             return space;
         }
 
@@ -137,8 +147,8 @@ namespace Block_Game
                     return new Point(1, -1);
                 }
 
-                Console.Write("\nX: " + ballPosition.X + "(between " + AX + " & " + BX + ")" + "\tprevAX = " + prevAX);
-                Console.Write("\tY: " + ballPosition.Y + "(between " + AY + " & " + BY + ")" + "\tprevAY = " + prevAY);
+                //Console.Write("\nX: " + ballPosition.X + "(between " + AX + " & " + BX + ")" + "\tprevAX = " + prevAX);
+                //Console.Write("\tY: " + ballPosition.Y + "(between " + AY + " & " + BY + ")" + "\tprevAY = " + prevAY);
             }
 
 
