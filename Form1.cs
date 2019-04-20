@@ -13,7 +13,7 @@ namespace Block_Game
 {
     public partial class Form1 : Form
     {
-        public int refreshRate = 15;
+        public int refreshRate = 5;
 
         public bool gameActive = false;
         public List<List<bool>> filledSpace = new List<List<bool>> { };
@@ -21,8 +21,8 @@ namespace Block_Game
         public Point spaceDimensions = new Point(1000, 600);
         public int spaceSize = 20;
 
-        public Point ballPosition = new Point(150, 60);
-        public Point ballVelocity = new Point(3, 3);
+        public Point ballPosition = new Point(100, 60);
+        public Point ballVelocity = new Point(0, 3);
 
         public int prevAX = 0;
         public int prevBX = 0;
@@ -69,9 +69,6 @@ namespace Block_Game
                 ballVelocity.X *= bounceFactor.X;
                 ballVelocity.Y *= bounceFactor.Y;
 
-                //ballVelocity.X *= BounceX(e,prevAX,prevBX,prevAY,prevBY);
-                //ballVelocity.Y *= BounceY(e);
-
 
 
                 Thread.Sleep(refreshRate);
@@ -116,7 +113,6 @@ namespace Block_Game
             for (int i = 6; i < 44; i++)
             {
                 space[i][6] = true;
-                //space[i][11] = true;
             }
             return space;
         }
@@ -150,11 +146,11 @@ namespace Block_Game
                 int diff = 0;
                 if (filledSpace[AX][AY])            //intersect top left corner
                 {
-                    if (ballVelocity.X > 0)
+                    if (ballVelocity.X >= 0)
                     {
                         return new Point(1, -1);
                     }
-                    else if (ballVelocity.Y > 0)
+                    else if (ballVelocity.Y >= 0)
                     {
                         return new Point(-1, 1);
                     }
@@ -165,11 +161,11 @@ namespace Block_Game
                 }
                 else if (filledSpace[BX][AY])       // top right corner
                 {
-                    if (ballVelocity.X < 0)
+                    if (ballVelocity.X <= 0)
                     {
                         return new Point(1, -1);
                     }
-                    else if (ballVelocity.Y > 0)
+                    else if (ballVelocity.Y >= 0)
                     {
                         return new Point(-1, 1);
                     }
@@ -180,11 +176,11 @@ namespace Block_Game
                 }
                 else if (filledSpace[AX][BY])       // bottom left corner
                 {
-                    if (ballVelocity.X > 0)
+                    if (ballVelocity.X >= 0)
                     {
                         return new Point(1, -1);
                     }
-                    else if (ballVelocity.Y < 0)
+                    else if (ballVelocity.Y <= 0)
                     {
                         return new Point(-1, 1);
                     }
@@ -195,11 +191,11 @@ namespace Block_Game
                 }
                 else if (filledSpace[BX][BY])       // bottom right corner
                 {
-                    if (ballVelocity.X < 0)
+                    if (ballVelocity.X <= 0)
                     {
                         return new Point(1, -1);
                     }
-                    else if (ballVelocity.Y < 0)
+                    else if (ballVelocity.Y <= 0)
                     {
                         return new Point(-1, 1);
                     }
@@ -220,14 +216,7 @@ namespace Block_Game
                 {
                     return new Point(-1, -1);
                 }
-
-                //Console.Write("\nX: " + ballPosition.X + "(between " + AX + " & " + BX + ")" + "\tprevAX = " + prevAX);
-                //Console.Write("\tY: " + ballPosition.Y + "(between " + AY + " & " + BY + ")" + "\tprevAY = " + prevAY);
             }
-
-
-
-
 
             return new Point(1, 1);
         }
@@ -244,38 +233,6 @@ namespace Block_Game
                 return true;
             }
             return false;
-        }
-
-        int BounceX(System.Windows.Forms.PaintEventArgs e, int prevAX, int prevBX, int prevAY, int prevBY)
-        {
-            //write(e, "press button to start", 100, 150, "Bold", 20);
-            int testAX = ballPosition.X / spaceSize;
-            int testBX = testAX + 1;
-
-            int testAY = ballPosition.Y / spaceSize;
-            int testBY = testAY + 1;
-
-
-
-
-
-            Console.Write("\nX: " + ballPosition.X + "(between " + testAX + " & " + testBX + ")" + "\tprevAX = " + prevAX);
-            Console.Write("\tY: " + ballPosition.Y + "(between " + testAY + " & " + testBY + ")" + "\tprevAY = " + prevAY);
-
-            Console.Write("\t" + filledSpace[testAX][testAY]);
-
-
-            if (!filledSpace[prevAX][prevAY] && filledSpace[testAX][testAY])
-            {
-                return -1;
-            }
-
-            return 1;
-        }
-
-        int BounceY(Point position)
-        {
-            return 1;
         }
 
         void DrawBall(System.Windows.Forms.PaintEventArgs e, int x, int y, int size)
