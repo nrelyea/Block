@@ -13,27 +13,38 @@ namespace Block_Game
 {
     public partial class Form1 : Form
     {
-        public int refreshRate = 5;
+        public int refreshRate = 0;
 
         public bool gameActive = false;
         public List<List<bool>> filledSpace = new List<List<bool>> { };
+        public List<List<Color>> colorMatrix = new List<List<Color>> { };
+
+        public Color unbreakable = Color.Black;
 
         public Point spaceDimensions = new Point(1000, 600);
         public int spaceSize = 20;
 
-        public Point ballPosition = new Point(100, 60);
-        public Point ballVelocity = new Point(0, 3);
+        public Point ballPosition = new Point(58, 50);
+        public Point ballVelocity = new Point(4, 6);
 
-        public int prevAX = 0;
-        public int prevBX = 0;
-        public int prevAY = 0;
-        public int prevBY = 0;
+        public int prevAX;
+        public int prevBX;
+        public int prevAY;
+        public int prevBY;
 
         public Form1()
         {
             this.KeyPreview = false;
-            //List<List<bool>> filledSpace = new List<List<bool>> { };
+
+            prevAX = ballPosition.X / spaceSize;
+            prevBX = prevAX + 1;
+
+            prevAY = ballPosition.Y / spaceSize;
+            prevBY = prevAY + 1;
+
             filledSpace = GenerateInitialSpace(spaceDimensions, spaceSize);
+            colorMatrix = GenerateBlankColorMatrix(spaceDimensions, spaceSize);
+            PopulateMatrices();
             InitializeComponent();
         }
 
@@ -41,33 +52,25 @@ namespace Block_Game
         {
             this.DoubleBuffered = true;
 
+            this.WindowState = FormWindowState.Maximized;
+
             this.Paint += new PaintEventHandler(Form1_Paint);
 
         }
 
         public void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
         {
-            DrawBorder(e, spaceDimensions.X, spaceDimensions.Y, spaceSize);
-            e.Graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(spaceDimensions.X - spaceSize, spaceDimensions.Y - spaceSize, spaceSize, spaceSize));
+            BreakBlock();
 
-            e.Graphics.FillRectangle(new SolidBrush(Color.Black), new Rectangle(spaceSize * 6, spaceSize * 6, spaceSize * 38, spaceSize));
+            write(e, "Rina is the most beautiful girl in the world!", 225, 320, "Bold", 20);
+
+            DrawGrid(e);
 
             DrawBall(e, ballPosition.X, ballPosition.Y, spaceSize);
 
             if (gameActive)
             {
-                int prevAX = ballPosition.X / spaceSize;
-                int prevBX = prevAX + 1;
-
-                int prevAY = ballPosition.Y / spaceSize;
-                int prevBY = prevAY + 1;
-
-                ballPosition.X += ballVelocity.X;
-                ballPosition.Y += ballVelocity.Y;
-
-                Point bounceFactor = Bounce(e, prevAX, prevBX, prevAY, prevBY);
-                ballVelocity.X *= bounceFactor.X;
-                ballVelocity.Y *= bounceFactor.Y;
+                MoveBall();
 
 
 
@@ -76,14 +79,13 @@ namespace Block_Game
             }
             else
             {
-                write(e, "press button to start", 100, 100, "Bold", 20);
-                //write(e, filledSpace[1][1].ToString(), 100, 150, "Bold", 20);
+                write(e, "press button to start", 375, 325, "Bold", 20);
             }
 
 
         }
 
-        static List<List<bool>> GenerateInitialSpace(Point spaceDimensions, int spaceSize)
+        public List<List<bool>> GenerateInitialSpace(Point spaceDimensions, int spaceSize)
         {
             List<List<bool>> space = new List<List<bool>> { };
 
@@ -97,27 +99,107 @@ namespace Block_Game
                 List<bool> column = new List<bool> { };
                 for (int j = 0; j < rowCount; j++)
                 {
-                    if (j == 0 || j == rowCount - 1 || i == 0 || i == columnCount - 1)
-                    {
-                        column.Add(true);
-                    }
-                    else
-                    {
-                        column.Add(false);
-                    }
+                    column.Add(false);
                 }
                 space.Add(column);
             }
 
-
-            for (int i = 6; i < 44; i++)
-            {
-                space[i][6] = true;
-            }
             return space;
         }
 
-        Point Bounce(System.Windows.Forms.PaintEventArgs e, int prevAX, int prevBX, int prevAY, int prevBY)
+        public List<List<Color>> GenerateBlankColorMatrix(Point spaceDimensions, int spaceSize)
+        {
+            List<List<Color>> colorMatrix = new List<List<Color>> { };
+
+            int columnCount = (spaceDimensions.X / spaceSize);
+            int rowCount = (spaceDimensions.Y / spaceSize);
+
+            for (int i = 0; i < columnCount; i++)
+            {
+                List<Color> column = new List<Color> { };
+                for (int j = 0; j < rowCount; j++)
+                {
+                    column.Add(Color.Purple);
+                }
+                colorMatrix.Add(column);
+            }
+
+            return colorMatrix;
+        }
+
+        public void PopulateMatrices()
+        {
+            // Draw Border
+            for (int i = 0; i < filledSpace.Count; i++)
+            {
+                for (int j = 0; j < filledSpace[i].Count; j++)
+                {
+                    if (j == 0 || j == filledSpace[i].Count - 1 || i == 0 || i == filledSpace.Count - 1)
+                    {
+                        filledSpace[i][j] = true;
+                        colorMatrix[i][j] = unbreakable;
+                    }
+                }
+            }
+
+            for (int i = 6; i < 44; i++)
+            {
+                filledSpace[i][13] = true;
+                colorMatrix[i][13] = Color.Orange;
+                filledSpace[i][14] = true;
+                colorMatrix[i][14] = Color.Orange;
+                filledSpace[i][15] = true;
+                colorMatrix[i][15] = Color.Orange;
+                filledSpace[i][16] = true;
+                colorMatrix[i][16] = Color.Orange;
+            }
+        }
+
+        public void DrawGrid(System.Windows.Forms.PaintEventArgs e)
+        {
+            for (int i = 0; i < filledSpace.Count; i++)
+            {
+                for (int j = 0; j < filledSpace[i].Count; j++)
+                {
+                    if (filledSpace[i][j])
+                    {
+                        e.Graphics.FillRectangle(new SolidBrush(colorMatrix[i][j]), new Rectangle(i * spaceSize, j * spaceSize, spaceSize, spaceSize));
+                    }
+                }
+            }
+        }
+
+        public void MoveBall()
+        {
+            prevAX = ballPosition.X / spaceSize;
+            prevBX = prevAX + 1;
+
+            prevAY = ballPosition.Y / spaceSize;
+            prevBY = prevAY + 1;
+
+            ballPosition.X += ballVelocity.X;
+            ballPosition.Y += ballVelocity.Y;
+
+            Point bounceFactor = Bounce();
+            ballVelocity.X *= bounceFactor.X;
+            ballVelocity.Y *= bounceFactor.Y;
+        }
+
+        public void BreakBlock()
+        {
+            for (int i = prevAX; i < prevAX + 2; i++)
+            {
+                for (int j = prevAY; j < prevAY + 2; j++)
+                {
+                    if (filledSpace[i][j] && colorMatrix[i][j] != unbreakable)
+                    {
+                        filledSpace[i][j] = false;
+                    }
+                }
+            }
+        }
+
+        Point Bounce()
         {
             int AX = ballPosition.X / spaceSize;
             int BX = AX + 1;
@@ -129,17 +211,17 @@ namespace Block_Game
             {
                 if (ContactCount(AX, BX, AY, BY) == 3)
                 {
-                    Console.WriteLine("CORNER HIT");
+                    //Console.WriteLine("CORNER HIT EVERYBODY CELEBRATE IT ACTUALLY HAPPENED OMG!!!!!!!!!!!!!1");
                     return new Point(-1, -1);
                 }
                 else if ((filledSpace[AX][AY] && filledSpace[AX][BY]) || (filledSpace[BX][AY] && filledSpace[BX][BY]))
                 {
-                    Console.WriteLine("L/R HIT");
+                    //Console.WriteLine("L/R HIT");
                     return new Point(-1, 1);
                 }
                 else if ((filledSpace[AX][AY] && filledSpace[BX][AY]) || (filledSpace[AX][BY] && filledSpace[BX][BY]))
                 {
-                    Console.WriteLine("U/D HIT");
+                    //Console.WriteLine("U/D HIT");                                       
                     return new Point(1, -1);
                 }
 
@@ -157,7 +239,7 @@ namespace Block_Game
 
                     Point diffPoint = new Point(ballPosition.X - (spaceSize * AX), ballPosition.Y - (spaceSize * AY));
                     diff = diffPoint.Y - diffPoint.X;
-                    Console.WriteLine("1 diff: " + diff);
+                    //Console.WriteLine("1 diff: " + diff);
                 }
                 else if (filledSpace[BX][AY])       // top right corner
                 {
@@ -172,7 +254,7 @@ namespace Block_Game
 
                     Point diffPoint = new Point((spaceSize * BX) - ballPosition.X, ballPosition.Y - (spaceSize * AY));
                     diff = diffPoint.Y - diffPoint.X;
-                    Console.WriteLine("2 diff: " + diff);
+                    //Console.WriteLine("2 diff: " + diff);
                 }
                 else if (filledSpace[AX][BY])       // bottom left corner
                 {
@@ -187,7 +269,7 @@ namespace Block_Game
 
                     Point diffPoint = new Point(ballPosition.X - (spaceSize * AX), (spaceSize * BY) - ballPosition.Y);
                     diff = diffPoint.Y - diffPoint.X;
-                    Console.WriteLine("3 diff: " + diff);
+                    //Console.WriteLine("3 diff: " + diff);                    
                 }
                 else if (filledSpace[BX][BY])       // bottom right corner
                 {
@@ -202,7 +284,7 @@ namespace Block_Game
 
                     Point diffPoint = new Point((spaceSize * BX) - ballPosition.X, (spaceSize * BY) - ballPosition.Y);
                     diff = diffPoint.Y - diffPoint.X;
-                    Console.WriteLine("4 diff: " + diff);
+                    //Console.WriteLine("4 diff: " + diff);                    
                 }
                 if (diff > 0)
                 {
@@ -237,17 +319,10 @@ namespace Block_Game
 
         void DrawBall(System.Windows.Forms.PaintEventArgs e, int x, int y, int size)
         {
-            e.Graphics.FillEllipse(new SolidBrush(Color.Red), new Rectangle(x, y, size, size));
-            e.Graphics.DrawEllipse(new Pen(new SolidBrush(Color.Black), 2), new Rectangle(x, y, size, size));
-        }
-
-        void DrawBorder(System.Windows.Forms.PaintEventArgs e, int width, int height, int thickness)
-        {
-            SolidBrush black = new SolidBrush(Color.Black);
-            e.Graphics.FillRectangle(black, new Rectangle(0, 0, thickness, height));
-            e.Graphics.FillRectangle(black, new Rectangle(0, height - thickness, width, thickness));
-            e.Graphics.FillRectangle(black, new Rectangle(0, 0, width, thickness));
-            e.Graphics.FillRectangle(black, new Rectangle(width - thickness, 0, thickness, height));
+            //e.Graphics.FillEllipse(new SolidBrush(Color.Red), new Rectangle(x, y, size, size));
+            //e.Graphics.DrawEllipse(new Pen(new SolidBrush(Color.Black), 2), new Rectangle(x, y, size, size));
+            e.Graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(x, y, size, size));
+            e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.Black), 2), new Rectangle(x, y, size, size));
         }
 
         void Form1_KeyPress(object sender, KeyPressEventArgs e)
@@ -304,14 +379,7 @@ namespace Block_Game
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (!gameActive)
-            {
-                gameActive = true;
-            }
-            else
-            {
-                gameActive = false;
-            }
+            gameActive = !gameActive;
         }
     }
 }
