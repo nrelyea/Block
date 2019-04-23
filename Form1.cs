@@ -13,7 +13,7 @@ namespace Block_Game
 {
     public partial class Form1 : Form
     {
-        public int refreshRate = 0;
+        public int refreshRate = 5;
 
         public bool gameActive = false;
         public List<List<bool>> filledSpace = new List<List<bool>> { };
@@ -26,6 +26,8 @@ namespace Block_Game
 
         public Point ballPosition = new Point(58, 50);
         public Point ballVelocity = new Point(4, 6);
+
+        public int barPosition;
 
         public int prevAX;
         public int prevBX;
@@ -65,6 +67,8 @@ namespace Block_Game
             write(e, "Rina is the most beautiful girl in the world!", 225, 320, "Bold", 20);
 
             DrawGrid(e);
+
+            DrawBar(e);
 
             DrawBall(e, ballPosition.X, ballPosition.Y, spaceSize);
 
@@ -167,6 +171,18 @@ namespace Block_Game
                     }
                 }
             }
+
+            //e.Graphics.FillRectangle(new SolidBrush(Color.Green), new Rectangle(20, 515, 127, 20));
+            //e.Graphics.FillRectangle(new SolidBrush(Color.Green), new Rectangle(853, 515, 127, 20));
+        }
+
+        public void DrawBar(System.Windows.Forms.PaintEventArgs e)
+        {
+            double factor = (double)barPosition / 91;
+
+            double position = (factor * 833) + 20;
+
+            e.Graphics.FillRectangle(new SolidBrush(Color.Green), new Rectangle((int)position, 515, 127, 20));
         }
 
         public void MoveBall()
@@ -380,6 +396,12 @@ namespace Block_Game
         private void button1_Click(object sender, EventArgs e)
         {
             gameActive = !gameActive;
+        }
+
+        private void hScrollBar1_Scroll(object sender, ScrollEventArgs e)
+        {
+            barPosition = hScrollBar1.Value;
+            Console.WriteLine(hScrollBar1.Value);
         }
     }
 }
