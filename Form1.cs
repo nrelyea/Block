@@ -13,7 +13,7 @@ namespace Block_Game
 {
     public partial class Form1 : Form
     {
-        public int refreshRate = 5;
+        public int refreshRate = 2;
 
         public bool gameActive = false;
         public List<List<bool>> filledSpace = new List<List<bool>> { };
@@ -24,10 +24,11 @@ namespace Block_Game
         public Point spaceDimensions = new Point(1000, 600);
         public int spaceSize = 20;
 
-        public Point ballPosition = new Point(58, 50);
-        public Point ballVelocity = new Point(4, 6);
+        public Point ballPosition = new Point(490, 520);
+        public Point ballVelocity = new Point(3, -3);
 
         public int barPosition;
+        public Point mousePosition = new Point(0, 0);
 
         public int prevAX;
         public int prevBX;
@@ -47,6 +48,7 @@ namespace Block_Game
             filledSpace = GenerateInitialSpace(spaceDimensions, spaceSize);
             colorMatrix = GenerateBlankColorMatrix(spaceDimensions, spaceSize);
             PopulateMatrices();
+
             InitializeComponent();
         }
 
@@ -62,18 +64,21 @@ namespace Block_Game
 
         public void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
         {
+
             BreakBlock();
 
-            write(e, "Rina is the most beautiful girl in the world!", 225, 320, "Bold", 20);
+            //write(e, "Rina is the most beautiful girl in the world!", 225, 320, "Bold", 20);
 
             DrawGrid(e);
-
-            DrawBar(e);
 
             DrawBall(e, ballPosition.X, ballPosition.Y, spaceSize);
 
             if (gameActive)
             {
+                SetOptionChanging(false);
+
+                DrawBar(e);
+
                 MoveBall();
 
 
@@ -83,7 +88,17 @@ namespace Block_Game
             }
             else
             {
-                write(e, "press button to start", 375, 325, "Bold", 20);
+                SetOptionChanging(true);
+
+                button1.Text = "start";
+                label1.Text = refreshRate.ToString();
+
+                write(e, "press 'start' to begin", 375, 325, "Bold", 20);
+
+                DrawBar(e);
+
+
+
             }
 
 
@@ -146,17 +161,34 @@ namespace Block_Game
                 }
             }
 
-            for (int i = 6; i < 44; i++)
+            for (int x = 4; x < 46; x += 6)
             {
-                filledSpace[i][13] = true;
-                colorMatrix[i][13] = Color.Orange;
-                filledSpace[i][14] = true;
-                colorMatrix[i][14] = Color.Orange;
-                filledSpace[i][15] = true;
-                colorMatrix[i][15] = Color.Orange;
-                filledSpace[i][16] = true;
-                colorMatrix[i][16] = Color.Orange;
+                for (int i = x; i < x + 3; i++)
+                {
+                    filledSpace[i][13] = true;
+                    colorMatrix[i][13] = Color.Red;
+                }
+                for (int i = x + 3; i < x + 6; i++)
+                {
+                    filledSpace[i][13] = true;
+                    colorMatrix[i][13] = Color.Blue;
+                }
             }
+            for (int x = 4; x < 46; x += 6)
+            {
+                for (int i = x; i < x + 3; i++)
+                {
+                    filledSpace[i][14] = true;
+                    colorMatrix[i][14] = Color.LawnGreen;
+                }
+                for (int i = x + 3; i < x + 6; i++)
+                {
+                    filledSpace[i][14] = true;
+                    colorMatrix[i][14] = Color.Yellow;
+                }
+            }
+
+
         }
 
         public void DrawGrid(System.Windows.Forms.PaintEventArgs e)
@@ -171,18 +203,31 @@ namespace Block_Game
                     }
                 }
             }
-
-            //e.Graphics.FillRectangle(new SolidBrush(Color.Green), new Rectangle(20, 515, 127, 20));
-            //e.Graphics.FillRectangle(new SolidBrush(Color.Green), new Rectangle(853, 515, 127, 20));
         }
 
         public void DrawBar(System.Windows.Forms.PaintEventArgs e)
         {
-            double factor = (double)barPosition / 91;
+            if (!gameActive)
+            {
+                barPosition = 440;
+            }
+            else if (mousePosition.X < 80)
+            {
+                barPosition = 20;
+            }
+            else if (mousePosition.X > 920)
+            {
+                barPosition = 860;
+            }
+            else
+            {
+                barPosition = mousePosition.X - 60;
+            }
+            e.Graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(20, 540, 960, 40));
+            e.Graphics.FillRectangle(new SolidBrush(Color.Green), new Rectangle(barPosition, 540, 120, 40));
+            e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.Black), 2), new Rectangle(barPosition, 540, 120, 40));
 
-            double position = (factor * 833) + 20;
 
-            e.Graphics.FillRectangle(new SolidBrush(Color.Green), new Rectangle((int)position, 515, 127, 20));
         }
 
         public void MoveBall()
@@ -199,6 +244,22 @@ namespace Block_Game
             Point bounceFactor = Bounce();
             ballVelocity.X *= bounceFactor.X;
             ballVelocity.Y *= bounceFactor.Y;
+
+            if (ballPosition.Y > (540 - spaceSize))
+            {
+                if ((ballPosition.X + spaceSize) > barPosition && ballPosition.X < (barPosition + 120))
+                {
+                    ballVelocity.Y *= -1;
+                }
+                else
+                {
+                    ballPosition = new Point(490, 520);
+                    ballVelocity = new Point(3, -3);
+                    gameActive = false;
+                    PopulateMatrices();
+                }
+
+            }
         }
 
         public void BreakBlock()
@@ -209,7 +270,13 @@ namespace Block_Game
                 {
                     if (filledSpace[i][j] && colorMatrix[i][j] != unbreakable)
                     {
-                        filledSpace[i][j] = false;
+                        for (int k = i - 2; k < i + 3; k++)
+                        {
+                            if (colorMatrix[k][j] == colorMatrix[i][j])
+                            {
+                                filledSpace[k][j] = false;
+                            }
+                        }
                     }
                 }
             }
@@ -319,25 +386,22 @@ namespace Block_Game
             return new Point(1, 1);
         }
 
+        public void SetOptionChanging(bool val)
+        {
+            button2.Enabled = val;
+            button3.Enabled = val;
+        }
+
         public int ContactCount(int AX, int BX, int AY, int BY)
         {
             return Convert.ToInt32(filledSpace[AX][AY]) + Convert.ToInt32(filledSpace[AX][BY]) + Convert.ToInt32(filledSpace[BX][AY]) + Convert.ToInt32(filledSpace[BX][BY]);
-        }
-
-        public bool PrevPositionWasClear(int prevAX, int prevBX, int prevAY, int prevBY)
-        {
-            if (!filledSpace[prevAX][prevAY] && !filledSpace[prevAX][prevBY] && !filledSpace[prevBX][prevAY] && !filledSpace[prevBX][prevBY])
-            {
-                return true;
-            }
-            return false;
         }
 
         void DrawBall(System.Windows.Forms.PaintEventArgs e, int x, int y, int size)
         {
             //e.Graphics.FillEllipse(new SolidBrush(Color.Red), new Rectangle(x, y, size, size));
             //e.Graphics.DrawEllipse(new Pen(new SolidBrush(Color.Black), 2), new Rectangle(x, y, size, size));
-            e.Graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(x, y, size, size));
+            e.Graphics.FillRectangle(new SolidBrush(Color.Green), new Rectangle(x, y, size, size));
             e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.Black), 2), new Rectangle(x, y, size, size));
         }
 
@@ -396,12 +460,30 @@ namespace Block_Game
         private void button1_Click(object sender, EventArgs e)
         {
             gameActive = !gameActive;
+            if (gameActive)
+            {
+                button1.Text = "pause";
+            }
         }
 
-        private void hScrollBar1_Scroll(object sender, ScrollEventArgs e)
+        private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
-            barPosition = hScrollBar1.Value;
-            Console.WriteLine(hScrollBar1.Value);
+            mousePosition.X = e.X;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            refreshRate++;
+            this.Invalidate();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (refreshRate > 0)
+            {
+                refreshRate--;
+                this.Invalidate();
+            }
         }
     }
 }
